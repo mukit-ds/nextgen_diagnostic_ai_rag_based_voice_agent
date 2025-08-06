@@ -1,4 +1,4 @@
-# RAG-Powered Voice Assistant with LiveKit and FastAPI
+# RAG-Powered Voice Assistant with LiveKit and FastAPI For NextGen Diagnostic
 
 A voice-enabled AI assistant that provides real-time answers from your custom knowledge base using Retrieval-Augmented Generation (RAG) technology.
 
