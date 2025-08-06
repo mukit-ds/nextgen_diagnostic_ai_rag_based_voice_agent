@@ -1,0 +1,30 @@
+# Standard support
+pandas
+python-dotenv
+
+# LlamaIndex (RAG system)
+llama-index>=0.10.10
+llama-index-core
+llama-index-llms-openai
+llama-index-embeddings-openai
+
+# OpenAI LLMs/STT
+openai
+
+# LiveKit Agent SDK
+livekit-agents
+
+# Plugins used in voice agent
+livekit-plugins-openai
+livekit-plugins-silero
+livekit-plugins-cartesia
+
+# Async support
+aiohttp
+
+livekit
+livekit-agents
+llama-index
+python-dotenv
+pandas
+openai
