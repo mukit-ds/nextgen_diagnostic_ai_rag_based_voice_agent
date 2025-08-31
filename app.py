@@ -2,27 +2,34 @@ import httpx
 from typing import Annotated
 from dotenv import load_dotenv
 from livekit.agents import Agent, AgentSession, AutoSubscribe, JobContext, WorkerOptions, cli, llm
-from livekit.plugins import openai, silero, cartesia
+from livekit.plugins import openai, silero
 
 load_dotenv()
 
 @llm.function_tool
 async def query_info(
-    query: Annotated[str, "The user’s question."]
+    query: Annotated[str, "The user's question."]
 ) -> str:
     print(f"Calling FastAPI with query: {query}")
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            "http://localhost:8000/rag-query",
-            json={"query": query}
-        )
-        if response.status_code == 200:
-            result = response.json().get("response")
-            print(f"FastAPI returned: {result}")
-            return result or "Sorry, I couldn't find an answer."
-        else:
-            print(f"FastAPI error: {response.status_code}")
-            return "Sorry, I couldn’t connect to the knowledge base."
+    async with httpx.AsyncClient(timeout=30.0) as client:  # Increased timeout
+        try:
+            response = await client.post(
+                "http://127.0.0.1:8000/rag-query",  # Use explicit IP
+                json={"query": query}
+            )
+            if response.status_code == 200:
+                result = response.json().get("response")
+                print(f"FastAPI returned: {result}")
+                return result or "Sorry, I couldn't find an answer."
+            else:
+                print(f"FastAPI error: {response.status_code}")
+                return "Sorry, I couldn't connect to the knowledge base."
+        except httpx.ReadTimeout:
+            print("FastAPI request timed out")
+            return "The knowledge base is taking too long to respond. Please try again."
+        except Exception as e:
+            print(f"FastAPI connection error: {e}")
+            return "Sorry, I couldn't connect to the knowledge base."
 
 
 async def entrypoint(ctx: JobContext):
@@ -38,9 +45,9 @@ async def entrypoint(ctx: JobContext):
         vad=silero.VAD.load(),
         stt=openai.STT(),
         llm=openai.LLM(model="gpt-4o"),
-        tts=cartesia.TTS(
-            model="sonic-2",
-            voice="bf0a246a-8642-498a-9950-80c35e9276b5",
+        tts=openai.TTS(
+            model="tts-1",
+            voice="alloy"
         ),
         tools=[query_info],
     )
@@ -51,4 +58,3 @@ async def entrypoint(ctx: JobContext):
 
 if __name__ == "__main__":
     cli.run_app(WorkerOptions(entrypoint_fnc=entrypoint))
-
